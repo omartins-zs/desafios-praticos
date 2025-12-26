@@ -1,142 +1,194 @@
-# Prompt Universal – Projeto Profissional (Qualquer Tecnologia)
+# Teste de Programação — Sistema de Reembolsos Corporativos
 
-Você é um **desenvolvedor sênior especialista em arquitetura de software, boas práticas modernas, Clean Code e SOLID**, com experiência em múltiplas tecnologias (backend, frontend, RPA, APIs, microsserviços, automações, etc.).
+## 📌 Contexto
 
-Preciso que você desenvolva um **PROJETO COMPLETO**, bem estruturado, organizado e profissional, **como se fosse para um ambiente real de produção e avaliação técnica**.
+Em empresas de médio e grande porte, colaboradores realizam despesas corporativas como:
 
----
+- Alimentação
+- Transporte
+- Hospedagem
+- Compra de materiais
+- Serviços emergenciais
 
-## 🎯 Contexto
-
-Este projeto faz parte de um **teste/desafio técnico** criado para avaliar:
-
-- Arquitetura
-- Organização de código
-- Clareza de responsabilidades
-- Escolha correta de tecnologias
-- Boas práticas profissionais
-- Capacidade de análise do problema
-
-⚠️ **Importante:**  
-A tecnologia **NÃO está pré-definida**.  
-Você deve **analisar o desafio** e **identificar automaticamente** se é um projeto de:
-
-- Backend (API, monólito, microsserviço)
-- Frontend
-- Fullstack
-- RPA / Automação
-- Script
-- Integração entre sistemas
-- Outro tipo de solução técnica
-
-E então **escolher a melhor stack e arquitetura** para resolver o problema.
+Atualmente, muitas dessas solicitações de reembolso são feitas por **e-mail ou planilhas**, o que gera confusão, atrasos, falta de padronização e dificuldade de auditoria.
 
 ---
 
-## ==================================================
-## 📌 DESCRIÇÃO DO DESAFIO / TESTE
-## ==================================================
+## 🎯 Objetivo
 
-👉 **COLE AQUI O TEXTO DO DESAFIO / PROJETO / TESTE**
+Desenvolver um **Sistema de Reembolsos Corporativos** capaz de:
 
-Explique:
-- O problema
-- Regras de negócio
-- Fluxo esperado
-- Entradas e saídas
-- Restrições
-- Cenários importantes
-
-(Este bloco define o que o sistema deve fazer)
+- Centralizar solicitações de reembolso
+- Controlar fluxo de aprovação
+- Garantir rastreabilidade das solicitações
+- Manter histórico financeiro organizado
+- Facilitar auditorias internas e externas
 
 ---
 
-## ==================================================
-## 📌 REQUISITOS OBRIGATÓRIOS
-## ==================================================
+## ❗ Problema
 
-### 1️⃣ Análise Técnica Inicial
-Antes de codar, faça:
-- Análise do problema
-- Identificação do tipo de projeto
-- Justificativa da tecnologia escolhida
-- Justificativa da arquitetura adotada
+O modelo atual apresenta diversos problemas:
 
----
-
-### 2️⃣ Arquitetura e Organização
-- Separação clara de responsabilidades (**SRP**)
-- Código organizado por camadas ou módulos
-- Arquitetura adequada ao tipo do projeto
-- Evitar acoplamento desnecessário
+- Solicitações feitas por e-mail se perdem facilmente
+- Não existe controle claro de status
+- Dificuldade para saber:
+  - Quem solicitou
+  - Quem aprovou
+  - Quando foi aprovado
+- Falta de histórico consolidado
+- Risco de pagamentos duplicados ou indevidos
+- Baixa transparência para colaboradores e gestores
 
 ---
 
-### 3️⃣ Regras de Negócio
-- Regras de negócio **não devem ficar misturadas** com:
-  - Interface
-  - Controllers
-  - Scripts principais
-- Criar camadas ou componentes próprios para regras
+## 💡 Solução Proposta
+
+Criar um sistema que:
+
+- Cadastre colaboradores
+- Permita abertura de solicitações de reembolso
+- Controle status da solicitação
+- Implemente fluxo de aprovação
+- Registre datas e responsáveis por cada etapa
+- Permita consulta ao histórico completo
+- Gere dados confiáveis para controle financeiro
 
 ---
 
-### 4️⃣ Filas, Jobs, Assíncrono (apenas se necessário)
-- Usar filas, jobs ou execução assíncrona **somente se fizer sentido**
-- Caso utilize:
-  - Justificar a necessidade
-  - Tratar erros corretamente
-  - Implementar retry/backoff quando aplicável
-- Caso NÃO utilize:
-  - Explicar claramente por que não foi necessário
+## 🧩 Regras de Negócio
+
+1. Todo reembolso deve estar vinculado a um colaborador
+2. Uma solicitação inicia com status **PENDENTE**
+3. Apenas usuários com perfil **GESTOR** ou **FINANCEIRO** podem aprovar ou reprovar
+4. Status possíveis:
+   - PENDENTE
+   - APROVADO
+   - REPROVADO
+   - PAGO
+5. Um reembolso só pode ser marcado como **PAGO** após aprovação
+6. A data de aprovação só deve ser preenchida quando o status for APROVADO
+7. Solicitações reprovadas devem conter justificativa
+8. Todo o histórico deve ser auditável
 
 ---
 
-### 5️⃣ Validação e Confiabilidade
-- Validar entradas
-- Tratar erros previsíveis
-- Mensagens claras e objetivas
-- Não deixar falhas silenciosas
+## 🛠 Tecnologias Sugeridas
+
+- Linguagem: PHP
+- Framework: Laravel
+- Banco de Dados: MySQL
+- API REST (JSON)
+- Autenticação por sessão ou token
+- Uso de filas para notificações e processamento assíncrono
 
 ---
 
-### 6️⃣ Tratamento de Erros e Logs
-- Uso correto de try/catch (ou equivalente na tecnologia)
-- Logs claros e úteis
-- Tratamento de exceções de forma profissional
+## 🗄 Estrutura do Banco de Dados
+
+### Tabela: colaboradores
+
+    CREATE TABLE colaboradores (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        nome VARCHAR(100) NOT NULL,
+        email VARCHAR(100) UNIQUE NOT NULL,
+        cargo VARCHAR(100) NOT NULL,
+        created_at DATETIME,
+        updated_at DATETIME
+    );
+
+### Tabela: reembolsos
+
+    CREATE TABLE reembolsos (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        colaborador_id INT NOT NULL,
+        descricao VARCHAR(255) NOT NULL,
+        valor DECIMAL(10,2) NOT NULL,
+        status ENUM('PENDENTE','APROVADO','REPROVADO','PAGO') NOT NULL,
+        data_solicitacao DATE NOT NULL,
+        data_aprovacao DATE NULL,
+        justificativa_reprovacao TEXT NULL,
+        created_at DATETIME,
+        updated_at DATETIME,
+        FOREIGN KEY (colaborador_id) REFERENCES colaboradores(id)
+    );
 
 ---
 
-### 7️⃣ Padrões de Código
-- Nomes claros para arquivos, funções, classes e variáveis
-- Código limpo e legível
-- Comentários apenas quando agregarem valor
-- Seguir padrões da linguagem/framework escolhido
+## 🔌 Endpoints Esperados
+
+### Criar solicitação de reembolso
+
+    POST /api/reembolsos
+
+    {
+      "colaborador_id": 1,
+      "descricao": "Almoço com cliente",
+      "valor": 85.90
+    }
+
+### Aprovar reembolso
+
+    POST /api/reembolsos/aprovar
+
+    {
+      "reembolso_id": 10
+    }
+
+### Reprovar reembolso
+
+    POST /api/reembolsos/reprovar
+
+    {
+      "reembolso_id": 10,
+      "justificativa": "Despesa fora da política"
+    }
+
+### Marcar reembolso como pago
+
+    POST /api/reembolsos/pagar
+
+    {
+      "reembolso_id": 10
+    }
+
+### Listar reembolsos
+
+    GET /api/reembolsos
 
 ---
 
-## ==================================================
-## 📦 ENTREGA ESPERADA
-## ==================================================
+## ⚙️ Processamento Assíncrono (Fila)
 
-- Explicação inicial da solução
-- Estrutura de pastas / arquivos
-- Código completo
-- Exemplos de uso (inputs e outputs)
-- Explicação das decisões técnicas
-- Tudo em português
-- Nível **profissional / avaliação técnica real**
-
----
-
-## 🚀 DICA EXTRA (IMPORTANTE)
-
-Se existirem múltiplas abordagens possíveis:
-- Explique por que escolheu uma
-- Aponte vantagens e desvantagens
-- Demonstre pensamento crítico e maturidade técnica
+- Envio de notificações ao colaborador quando:
+  - Solicitação for criada
+  - Solicitação for aprovada ou reprovada
+  - Reembolso for pago
+- Uso de filas para evitar impacto na performance
+- Pode ser utilizado:
+  - Database Queue
+  - Redis
+  - RabbitMQ
 
 ---
 
-⚠️ **Não quero respostas genéricas.**  
-Quero uma solução **bem pensada**, **bem escrita** e **bem estruturada**, como se fosse apresentada para um **tech lead ou arquiteto de software**.
+## 📊 Funcionalidades Extras (Opcional)
+
+- Upload de comprovantes fiscais
+- Limite de valor por cargo
+- Relatórios financeiros por período
+- Dashboard para área financeira
+- Exportação para CSV ou PDF
+- Logs de auditoria
+
+---
+
+## 🧪 Critérios de Avaliação
+
+- Organização do código
+- Separação de responsabilidades (Controllers, Services, Jobs)
+- Implementação correta das regras de negócio
+- Qualidade da modelagem do banco de dados
+- Uso adequado de filas
+- Clareza da documentação
+- Boas práticas de API REST
